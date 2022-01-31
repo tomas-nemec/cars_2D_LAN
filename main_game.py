@@ -3,17 +3,17 @@ import pygame
 from utils import scale_image, rotate_center
 from client import Client
 from player import *
-import time
+import copy
 
 WIDTH, HEIGHT = 600, 500
 
 # load images
 BG = pygame.image.load("imgs/BG.png")
-FINISH = scale_image(pygame.image.load("imgs/finish.png"), 1.6)
+FINISH = scale_image(pygame.image.load("imgs/finish.png"), 1)
 FINISH_MASK = pygame.mask.from_surface(FINISH)
-FINISH_LOCATION = (25, 300)
-TRACK = scale_image(pygame.image.load("imgs/track1.png"), 1)
-TRACK_BOARDER  = scale_image(pygame.image.load("imgs/track-border1.png"), 1)
+FINISH_LOCATION = (10, 300)
+TRACK = scale_image(pygame.image.load("imgs/track2.png"), 1)
+TRACK_BOARDER  = scale_image(pygame.image.load("imgs/track-border2.png"), 1)
 TRACK_BOARDER_MASK = pygame.mask.from_surface(TRACK_BOARDER)
 
 
@@ -26,19 +26,29 @@ CAR2 = scale_image(pygame.image.load("imgs/car_blue.png"),0.5)
 CAR3 = scale_image(pygame.image.load("imgs/car_green.png"),0.5)
 CAR4 = scale_image(pygame.image.load("imgs/car_yellow.png"),0.5)
 CAR5 = scale_image(pygame.image.load("imgs/car_grey.png"),0.5)
+# CAR masks
+CAR1_mask = pygame.mask.from_surface(CAR1)
+CAR2_mask = pygame.mask.from_surface(CAR2)
+CAR3_mask = pygame.mask.from_surface(CAR3)
+CAR4_mask = pygame.mask.from_surface(CAR4)
+CAR5_mask = pygame.mask.from_surface(CAR5)
 
 CARS = [CAR1, CAR2, CAR3, CAR4, CAR5]
+CARS_masks = [CAR1_mask, CAR2_mask, CAR3_mask, CAR4_mask, CAR5_mask]
 
 # Dynamic variables
 players = []
 
 # FUNCTIONS
-def redraw_window(win, images, players):
+def redraw_window(win, images, players, main_player):
     for img, pos in images:
         win.blit(img, pos)
 
     for player in players:
-        player.render(win, CARS[player.ID])
+        if player.ID != main_player.ID:
+            player.render(win, CARS[player.ID])
+
+    main_player.render(win, CARS[main_player.ID])
 
     pygame.display.update()  # redraw everything
 
@@ -72,31 +82,28 @@ def main(name):
     current_id = server.connect(name)   # function in class Client returning ID
     print(f"Current ID: {str(current_id)}")
     players = server.send("get")
-    print(f"Len of players: {len(players)}")
 
+    current_player = copy.deepcopy(players[current_id])
 
     run = True
-
     while run:
         clock.tick(30)  # 30 FPS
 
 
-        movement_of_player(players[current_id])
+        movement_of_player(current_player)        # players[current_id]
 
-        if players[current_id].collision(TRACK_BOARDER_MASK,CARS[current_id]) != None:
-            players[current_id].bounce()
+        if current_player.collision(TRACK_BOARDER_MASK, CARS_masks[current_id]) != None:
+            current_player.bounce()
 
-        data = "move " + str(round(players[current_id].x)) + " " + str(round(players[current_id].y)) + " " + str(round(players[current_id].angle))
-        #print(data)
+        data = "move " + str(round(current_player.x)) + " " + str(round(current_player.y)) + " " + str(round(current_player.angle)) # + " " + str(players[current_id].vel)
 
         players = server.send(data)
-
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
 
-        redraw_window(WIN, bg_images, players)
+        redraw_window(WIN, bg_images, players,current_player)
 
 
 

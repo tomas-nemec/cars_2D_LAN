@@ -23,11 +23,11 @@ class AbstractPlayer:
         rotate_center(win, image,(self.x, self.y), self.angle )
 
     def move_forward(self):
-        self.vel = max(self.vel + self.acceleration, self.max_vel)
+        self.vel = min(self.vel + self.acceleration, self.max_vel)
         self.move()
 
     def move_backward(self):
-        self.vel = min(self.vel - self.acceleration, -self.max_vel/2)
+        self.vel = max(self.vel - self.acceleration, -self.max_vel/2)
         self.move()
 
 
@@ -40,10 +40,9 @@ class AbstractPlayer:
         self.y -= vertical
         self.x -= horizontal
 
-    def collision(self, mask,image, x=0, y=0):
-        car_mask = pygame.mask.from_surface(image)
+    def collision(self, mask_map,mask_car, x=0, y=0):
         offset = (int(self.x - x), int(self.y - y))
-        point_of_intersection = mask.overlap(car_mask, offset)
+        point_of_intersection = mask_map.overlap(mask_car, offset)
         return point_of_intersection
 
 

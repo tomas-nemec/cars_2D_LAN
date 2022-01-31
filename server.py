@@ -47,6 +47,8 @@ def get_starting_positions():
 def threaded_client(conn, _id):
     global connections, players
 
+    opponents = []
+
     current_id = _id
     # receive a name from client
     data = conn.recv(16)
@@ -69,20 +71,17 @@ def threaded_client(conn, _id):
             data = data.decode("utf-8")
 
             if data.split(" ")[0] == "move":
-                print("POSITION changed")
+                #print("POSITION changed")
                 splited_data = data.split(" ")
                 new_x = int(splited_data[1])
                 new_y = int(splited_data[2])
                 new_angle = int(splited_data[3])
-                print(f"x:{new_x}   y:{new_y}")
 
                 players[current_id].x = new_x
                 players[current_id].y = new_y
                 players[current_id].angle = new_angle
 
-
                 send_data = pickle.dumps(players)
-                print("Sending list of players")
                 conn.send(send_data)
 
 
@@ -92,11 +91,9 @@ def threaded_client(conn, _id):
                 conn.send(send_data)
 
             else:
-                print(f"ELSE - Sending list of players = len(players): {str(len(players))}")
+                #print(f"ELSE - Sending list of players = len(players): {str(len(players))}")
                 send_data = pickle.dumps(players)
                 conn.send(send_data)
-
-
 
         except Exception as e:
             print(e)
